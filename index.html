@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ABUKI MARKET – Import to Ethiopia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#EAF6FD;--card:#fff;--ink:#0B2A3C;--mut:#4F6B7C;--line:#CBE3F1;--green:#8FD0F3;--green2:#1C6FA0;--gold:#F2B84B;--ok:#26B06E;--okbg:#DDF3E6;--info:#D3ECFA;--on:#0B2A3C;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0B1A24;--card:#122634;--ink:#E8F3FA;--mut:#9DB8C8;--line:#23404F;--green:#1F6E9E;--green2:#7CC4EC;--on:#fff;--okbg:#17382A;--info:#173A4D}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0B1A24;--card:#122634;--ink:#E8F3FA;--mut:#9DB8C8;--line:#23404F;--green:#1F6E9E;--green2:#7CC4EC;--on:#fff;--okbg:#17382A;--info:#173A4D}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "DM Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","DM Sans",sans-serif;line-height:1.1;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--green);z-index:30}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--green);color:var(--on)}
+.bar{max-width:1080px;margin:auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
+.logo{font:800 20px "Bricolage Grotesque",sans-serif;letter-spacing:.5px;color:var(--on);text-decoration:none;margin-right:auto}
+.logo b{font-weight:500}
+nav{display:flex;gap:16px}nav a{color:var(--on);text-decoration:none;font-size:15px;opacity:.9}
+.wa{background:#25D366;color:#06301a;font-weight:700;border-radius:99px;padding:8px 14px;text-decoration:none;font-size:14px;white-space:nowrap}
+@media(max-width:700px){nav{display:none}}
+main{max-width:1080px;margin:auto;padding:0 18px}
+section{padding:46px 0}
+.sub{color:var(--mut);max-width:560px;margin:8px 0 22px}
+h2{font-size:clamp(26px,5vw,36px)}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center;padding:38px 0 30px}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(34px,7vw,56px);font-weight:800;letter-spacing:-.5px}
+.hero p{font-size:18px;color:var(--mut);max-width:480px;margin:14px 0 22px}
+.btn{display:inline-block;border:0;border-radius:12px;padding:13px 20px;font:700 16px "DM Sans",sans-serif;cursor:pointer;text-decoration:none;background:var(--green);color:var(--on)}
+.btn.gold{background:var(--gold);color:#2a1d00}.btn.line{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.trk h3{font-size:24px}.trk .meta{color:var(--mut);margin:4px 0 14px}
+.pills{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 20px}
+.pill{border-radius:16px;padding:12px 14px;font-size:13px;color:var(--mut)}.pill b{display:block;color:var(--ink);font-size:16px}
+.pill.a{background:var(--okbg)}.pill.b{background:var(--info)}
+.tl{list-style:none;margin:10px 0 0;padding:0}
+.tl li{position:relative;padding:0 0 22px 46px;min-height:52px}
+.tl li:before{content:"";position:absolute;left:13px;top:28px;bottom:-2px;width:3px;background:var(--line)}
+.tl li:last-child:before{display:none}
+.tl li.done:before{background:var(--ok)}
+.dot{position:absolute;left:0;top:0;width:29px;height:29px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:15px;color:var(--mut);background:var(--card)}
+.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.tl .row{display:flex;justify-content:space-between;gap:10px;font-weight:500;font-size:17px}.tl .row span{font-size:13px;color:var(--mut);font-weight:400;white-space:nowrap}
+.tl small{color:var(--mut);font-size:14px}
+label{display:block;font-size:14px;font-weight:700;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:16px "DM Sans",sans-serif}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:560px){.two{grid-template-columns:1fr}}
+.err{color:#C0392B;font-size:14px;margin-top:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:7px 14px;font:500 14px "DM Sans",sans-serif;cursor:pointer}
+.chip.on{background:var(--green);border-color:var(--green);color:var(--on)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.prod{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.tile{height:120px;display:grid;place-items:center;font-size:48px}
+.prod div.b{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}.prod h3{font-size:17px}
+.price{font-weight:700}.price small{color:var(--mut);font-weight:400}
+.prod .btn{margin-top:auto;padding:10px;font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.steps div{border-top:4px solid var(--gold);padding-top:10px;counter-increment:s}.steps div:before{content:counter(s);font:800 26px "Bricolage Grotesque";color:var(--green2)}
+.steps b{display:block}.steps span{color:var(--mut);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:6px}th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:500;font-size:13px}
+.tag{display:inline-block;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700;background:var(--okbg);color:var(--green2)}.tag.w{background:#FBEBC8;color:#7a5200}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.terms h3{font-size:19px;margin-bottom:6px}.terms p{margin:0;color:var(--mut);font-size:15px}
+.rev p{margin:8px 0}.stars{color:var(--gold);letter-spacing:2px}
+.note{background:var(--info);border-radius:12px;padding:10px 14px;font-size:14px;margin:14px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:50;padding:18px}.modal.open{display:grid}
+.modal .card{max-width:420px;width:100%;max-height:90vh;overflow:auto}
+footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:center;font-size:14px}footer a{color:var(--on);font-weight:700}
+.thumbs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+.ok{background:var(--okbg);border-radius:14px;padding:16px;margin-top:14px}.ok b{font:800 22px "Bricolage Grotesque"}
+@media print{body *{visibility:hidden}#rcpt,#rcpt *{visibility:visible}#rcpt{position:absolute;inset:0}}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="#top">ABUKI<b>MARKET</b></a>
+<nav><a href="#shop">Shop</a><a href="#request">Request a product</a><a href="#track">Track order</a><a href="#terms">Delivery &amp; payment</a></nav>
+<a class="wa" href="https://wa.me/251707906272" target="_blank" rel="noopener">WhatsApp</a></div></header>
+
+<main id="top">
+<div class="hero">
+<div>
+<h1>Import from China to Ethiopia. Track every step.</h1>
+<p>We buy from China for you and ship by sea. Pick one of our products or send us one you found elsewhere. Pay 50% to start and 50% when it arrives. Delivery is free in Addis Ababa.</p>
+<a class="btn" href="#request">Request a product</a> <a class="btn line" href="#shop">Browse products</a>
+</div>
+<div class="card trk" id="heroTrack"></div>
+</div>
+
+<section id="how"><h2>How it works</h2><p class="sub">Every order gets its own ID, so you can follow it from request to delivery.</p>
+<div class="steps"><div><b>Choose or request</b><span>Pick a listed product or send us a link or photo.</span></div><div><b>Get a quotation</b><span>We reply with the full price in ETB.</span></div><div><b>Pay 50% deposit</b><span>Telebirr or CBE Birr. Receipt is automatic.</span></div><div><b>We order from China</b><span>Supplier proof is shown on your order page.</span></div><div><b>Pay the balance</b><span>The other 50% under the agreed delivery terms.</span></div></div></section>
+
+<section id="shop"><h2>Products</h2><p class="sub">Ask for a quotation and we’ll send the price in ETB. Everything ships from China.</p>
+<input id="q" type="search" placeholder="Search products" aria-label="Search products">
+<div class="chips" id="chips"></div><div class="grid" id="grid"></div></section>
+
+<section id="request"><h2>Request a product</h2><p class="sub">Found something on another site or in a shop? Tell us and we’ll send a quotation.</p>
+<div class="card"><form id="rf">
+<div class="two"><div><label for="n">Your name</label><input id="n" required></div><div><label for="p">Phone (Telebirr number)</label><input id="p" type="tel" placeholder="09…" required></div></div>
+<label for="pn">Product name or link</label><input id="pn" required placeholder="Paste a link or type the product name">
+<label for="d">Details (size, colour, model)</label><textarea id="d" rows="3"></textarea>
+<div class="two"><div><label for="qty">Quantity</label><input id="qty" type="number" min="1" value="1"></div><div><label for="c">Delivery city</label><input id="c" value="Addis Ababa"></div></div>
+<div class="note">Shipping is by sea from China. It takes about 2–3 months and the cost is lower.</div><label for="img">Photos (optional)</label><input id="img" type="file" accept="image/*" multiple><div class="thumbs" id="th"></div>
+<p style="margin:16px 0 0"><button class="btn gold" type="submit">Send request</button></p>
+<div id="rres"></div></form></div></section>
+
+<section id="track"><h2>Track your order</h2><p class="sub">Enter your Order ID and the phone number you used.</p>
+<div class="card"><form id="tf" class="two" style="align-items:end"><div><label for="oid">Order ID</label><input id="oid" placeholder="ABK-2026-000001" required></div><div><label for="ph">Phone number</label><input id="ph" type="tel" placeholder="09…" required></div>
+<div><button class="btn" type="submit">Track order</button></div></form>
+<div class="note">Orders sent through the request form can be tracked here. This prototype forgets them when you refresh the page.</div><div id="tres"></div></div></section>
+
+<section id="terms"><h2>Delivery and payment</h2><p class="sub">Simple terms, written down before you pay.</p>
+<div class="terms"><div class="card"><h3>Payment</h3><p>We accept Telebirr and CBE Birr. All prices are in ETB. You pay 50% after accepting a quotation and 50% when your order arrives in Addis Ababa, before delivery.</p></div>
+<div class="card"><h3>Delivery</h3><p>Sea shipping from China takes about 2–3 months. Delivery is free in Addis Ababa. Other Ethiopian towns are quoted by location.</p></div>
+<div class="card"><h3>Refunds</h3><p>The 50% deposit is refundable if you cancel before we order from the supplier. After we order, it is non-refundable.</p></div></div></section>
+
+<section id="reviews"><h2>Customer reviews</h2><p class="sub">No reviews yet. After an order is delivered, the customer can rate it here.</p>
+</section>
+</main>
+
+<footer><b>ABUKI MARKET</b><br>WhatsApp: <a href="https://wa.me/251707906272">0707 906 272</a></footer>
+
+<div class="modal" id="m"><div class="card" id="mc"></div></div>
+
+<script>
+var $=function(s){return document.querySelector(s)};
+var P=[["Skate shoes","Shoes",0,"🛼","#BFE3F7"],["Power banks","Electronics",0,"🔋","#FBEBC8"],["Phone cases","Phone accessories",0,"📱","#DDF3E6"]];
+var cats=["All","Shoes","Electronics","Phone accessories"],cat="All";
+var STEPS=[["Request received","We’ve received your request."],["Quotation sent","Review and accept your quotation."],["Deposit paid (50%)","Your deposit is confirmed."],["Ordered from supplier","The supplier has confirmed your order."],["Shipped","Your order is on the way to Ethiopia."],["Arrived in Ethiopia","Your order is in our Addis Ababa office."],["Balance paid (50%)","Final payment is confirmed."],["Delivered","Your order has been handed over."]];
+var O={};
+var seq=1;
+function fmt(n){return n.toLocaleString("en-US")}
+function trackHTML(id,o){
+ var cur=o.done-1,st=STEPS[cur][0].replace(" (50%)","");
+ var h='<h3>Track order #'+id+'</h3><div class="meta">'+o.date+' · '+o.item+'</div><div class="pills"><div class="pill a">Status<b>'+st+'</b></div><div class="pill b">Estimated delivery<b>'+(o.eta||"Set with quotation")+'</b></div></div><b>Tracking details</b><ul class="tl">';
+ STEPS.forEach(function(s,i){var d=i<o.done;h+='<li class="'+(d?"done":"")+'"><span class="dot">'+(d?"✓":"")+'</span><div class="row">'+s[0]+'<span>'+(d?(o.dates[i]||""):"Expected")+'</span></div><small>'+s[1]+'</small></li>'});
+ return h+'</ul>'}
+function payHTML(id,o){
+ if(!o.pay||!o.pay.length)return'<p class="sub">Payment records will appear here once your quotation is accepted.</p>';
+ var h='<h3 style="margin-top:26px;font-size:20px">Payment history</h3><p class="sub" style="margin:4px 0">Total: ETB '+fmt(o.total)+'</p><div style="overflow-x:auto"><table><tr><th>Date</th><th>Payment</th><th>Method</th><th>Amount (ETB)</th><th>Status</th><th></th></tr>';
+ o.pay.forEach(function(p,i){h+='<tr><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td>'+fmt(p[3])+'</td><td><span class="tag '+(p[4]=="Paid"?"":"w")+'">'+p[4]+'</span></td><td>'+(p[4]=="Paid"?'<button class="chip" onclick="rcpt(\''+id+'\','+i+')">Receipt</button>':"")+'</td></tr>'});
+ return h+'</table></div>'}
+function rcpt(id,i){var o=O[id],p=o.pay[i];
+ $("#mc").innerHTML='<div id="rcpt"><h3>ABUKI MARKET</h3><p style="color:var(--mut);margin:4px 0 14px">Payment receipt</p><table><tr><td>Receipt no.</td><td>RCT-'+id.slice(4)+'-'+(i+1)+'</td></tr><tr><td>Order ID</td><td>'+id+'</td></tr><tr><td>Item</td><td>'+o.item+'</td></tr><tr><td>Payment</td><td>'+p[1]+'</td></tr><tr><td>Method</td><td>'+p[2]+'</td></tr><tr><td>Date</td><td>'+p[0]+'</td></tr><tr><td><b>Amount paid</b></td><td><b>ETB '+fmt(p[3])+'</b></td></tr><tr><td>Order total</td><td>ETB '+fmt(o.total)+'</td></tr></table></div><p style="margin:16px 0 0"><button class="btn" onclick="window.print()">Print or save PDF</button> <button class="btn line" onclick="$(\'#m\').classList.remove(\'open\')">Close</button></p>';
+ $("#m").classList.add("open")}
+function grid(){var q=$("#q").value.toLowerCase(),h="";
+ P.filter(function(p){return(cat=="All"||p[1]==cat)&&p[0].toLowerCase().indexOf(q)>-1}).forEach(function(p){h+='<div class="prod"><div class="tile" style="background:'+p[4]+'">'+p[3]+'</div><div class="b"><h3>'+p[0]+'</h3><span style="color:var(--mut);font-size:14px">'+p[1]+'</span><span class="price">Price on quotation</span><span style="color:var(--mut);font-size:13px">Ships from China</span><button class="btn" data-n="'+p[0]+'">Order this</button></div></div>'});
+ $("#grid").innerHTML=h||'<p class="sub">No match. Send us a request and we’ll find it.</p>'}
+function chips(){$("#chips").innerHTML=cats.map(function(c){return'<button class="chip'+(c==cat?" on":"")+'" data-c="'+c+'">'+c+'</button>'}).join("")}
+$("#chips").onclick=function(e){if(e.target.dataset.c){cat=e.target.dataset.c;chips();grid()}};
+$("#q").oninput=grid;
+$("#grid").onclick=function(e){var n=e.target.dataset.n;if(n){$("#pn").value=n;$("#request").scrollIntoView();$("#n").focus()}};
+function lookup(id,ph){id=id.trim().toUpperCase();var o=O[id],d=function(x){return x.replace(/\D/g,"").slice(-9)};
+ if(!o||d(o.phone)!=d(ph))return null;return o}
+$("#tf").onsubmit=function(e){e.preventDefault();var id=$("#oid").value.trim().toUpperCase(),o=lookup(id,$("#ph").value);
+ $("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and phone number, or message us on WhatsApp.</p>'};
+$("#img").onchange=function(e){var t=$("#th");t.innerHTML="";Array.prototype.slice.call(e.target.files,0,5).forEach(function(f){var r=new FileReader();r.onload=function(){var i=new Image();i.src=r.result;t.appendChild(i)};r.readAsDataURL(f)})};
+$("#rf").onsubmit=function(e){e.preventDefault();
+ var id="ABK-2026-"+String(seq++).padStart(6,"0"),ph=$("#p").value,now=new Date();
+ O[id]={phone:ph,item:$("#pn").value.slice(0,40),date:now.toDateString(),eta:"About 2–3 months (sea)",total:0,done:1,dates:[now.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+now.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})],pay:[]};
+ $("#rres").innerHTML='<div class="ok"><span>Request received. Your Order ID:</span><br><b>'+id+'</b><p style="margin:8px 0 12px">Save this ID. We’ll send your quotation in ETB by phone or WhatsApp.</p><button class="btn" id="go">Track this order</button></div>';
+ $("#go").onclick=function(){$("#oid").value=id;$("#ph").value=ph;$("#tf").requestSubmit();$("#track").scrollIntoView()};
+ e.target.reset();$("#th").innerHTML=""};
+$("#m").onclick=function(e){if(e.target.id=="m")$("#m").classList.remove("open")};
+$("#heroTrack").innerHTML='<h3>Follow every order</h3><p class="meta">Each order gets its own ID. These are the steps you will see.</p><ul class="tl">'+STEPS.map(function(s){return'<li><span class="dot"></span><div class="row">'+s[0]+'</div><small>'+s[1]+'</small></li>'}).join("")+'</ul><a class="btn" href="#track">Track my order</a>';
+chips();grid();
+</script>
+</body>
+</html>
