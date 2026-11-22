@@ -206,7 +206,8 @@ $("#rf").onsubmit=function(e){e.preventDefault();var form=e.target,
 var admin=false;
 function route(){var a=$("#adm");if(location.hash=="#admin"){a.style.display="block";admin?arender():alogin();a.scrollIntoView()}else a.style.display="none"}
 window.addEventListener("hashchange",route);
-function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" style="max-width:360px;margin-top:16px">'+(REMOTE?'<label for="aem">Email</label><input id="aem" type="email">':'')+'<label for="apw">Password</label><input id="apw" type="password"><p style="margin:14px 0 0"><button class="btn" id="al">Log in</button></p><p class="err" id="ae"></p></div>';
+function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" style="max-width:360px;margin-top:16px">'+(REMOTE?'<label for="aem">Email</label><input id="aem" type="email">':'')+'<label for="apw">Password</label><input id="apw" type="password" autocomplete="current-password"><label style="font-weight:400;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sp" style="width:auto"> Show password</label><p style="margin:14px 0 0"><button class="btn" id="al">Log in</button></p><p class="err" id="ae"></p></div>';
+ $("#sp").onchange=function(){$("#apw").type=this.checked?"text":"password"};
  $("#al").onclick=function(){if(!REMOTE){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password.";return}
   api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;return api("/rest/v1/orders?select=*&order=created_at.asc")}).then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
 function sp(p){if(!REMOTE){S("abk_p",P);refresh();return}
