@@ -88,6 +88,10 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .adm td{vertical-align:middle}.adm .qty{display:flex;gap:4px;align-items:center}.adm .qty input{width:70px;padding:6px}
 .adm img.t{width:44px;height:44px;border-radius:8px;object-fit:cover}
+.prod .btn+.btn{margin-top:6px}
+#pdc{max-width:760px}.pg{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}@media(max-width:640px){.pg{grid-template-columns:1fr}}
+.big{background:var(--info);border-radius:14px;display:grid;place-items:center;aspect-ratio:1;overflow:hidden;cursor:zoom-in}.big img{width:100%;height:100%;object-fit:contain}
+.ths{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.ths img{width:58px;height:58px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer}.ths img.on{border-color:var(--green2)}
 </style>
 </head>
 <body>
@@ -141,6 +145,8 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 <footer><b>ABUKI MARKET</b><br>WhatsApp: <a href="https://wa.me/251707906272">0707 906 272</a><br><a href="#admin" style="font-weight:400;font-size:12px">Owner login</a></footer>
 
 <div class="modal" id="m"><div class="card" id="mc"></div></div>
+<div class="modal" id="pd"><div class="card" id="pdc"></div></div>
+<div class="modal" id="lb" style="background:rgba(0,0,0,.92)"><img id="lbi" alt="Product photo" style="max-width:100%;max-height:100%;object-fit:contain"></div>
 
 <script>
 var $=function(s){return document.querySelector(s)};
@@ -172,12 +178,12 @@ function rcpt(id,i){var o=O[id],p=o.pay[i];
  $("#m").classList.add("open")}
 function grid(){var q=$("#q").value.toLowerCase(),h="";
  P.filter(function(p){return(cat=="All"||p.cat==cat)&&p.name.toLowerCase().indexOf(q)>-1}).forEach(function(p){var no=p.stock<1;
- h+='<div class="prod"><div class="tile" style="background:#BFE3F7">'+(p.img?'<img src="'+p.img+'" alt="'+p.name+'">':p.emoji)+'</div><div class="b"><h3>'+p.name+'</h3><span style="color:var(--mut);font-size:14px">'+p.cat+'</span><span class="price">'+(p.price?'ETB '+fmt(p.price):'Price on quotation')+'</span><span class="stk '+(no?"no":p.stock<=3?"low":"")+'">'+(no?"Out of stock":p.stock<=3?"Only "+p.stock+" left":p.stock+" in stock")+'</span><span class="stk">Ships from China</span><button class="btn" data-n="'+p.id+'"'+(no?" disabled":"")+'>'+(no?"Out of stock":"Order this")+'</button></div></div>'});
+ h+='<div class="prod"><div class="tile" data-v="'+p.id+'" style="background:#BFE3F7;cursor:pointer">'+(pics(p)[0]?'<img data-v="'+p.id+'" src="'+pics(p)[0]+'" alt="'+p.name+'" loading="lazy">':p.emoji)+'</div><div class="b"><h3 data-v="'+p.id+'" style="cursor:pointer">'+p.name+'</h3><span style="color:var(--mut);font-size:14px">'+p.cat+'</span><span class="price">'+(p.price?'ETB '+fmt(p.price):'Price on quotation')+'</span><span class="stk '+(no?"no":p.stock<=3?"low":"")+'">'+(no?"Out of stock":p.stock<=3?"Only "+p.stock+" left":p.stock+" in stock")+'</span><span class="stk">Ships from China</span><button class="btn line" data-v="'+p.id+'">View details</button><button class="btn" data-n="'+p.id+'"'+(no?" disabled":"")+'>'+(no?"Out of stock":"Order this")+'</button></div></div>'});
  $("#grid").innerHTML=h||'<p class="sub">No match. Send us a request and we’ll find it.</p>'}
 function chips(){$("#chips").innerHTML=cats().map(function(c){return'<button class="chip'+(c==cat?" on":"")+'" data-c="'+c+'">'+c+'</button>'}).join("")}
 $("#chips").onclick=function(e){if(e.target.dataset.c){cat=e.target.dataset.c;chips();grid()}};
 $("#q").oninput=grid;
-$("#grid").onclick=function(e){var n=e.target.dataset.n;if(n){$("#sel").value=n;selchg();$("#request").scrollIntoView();$("#n").focus()}};
+$("#grid").onclick=function(e){var v=e.target.dataset.v;if(v){openP(v);return}var n=e.target.dataset.n;if(n){$("#sel").value=n;selchg();$("#request").scrollIntoView();$("#n").focus()}};
 function lookup(id,ph){id=id.trim().toUpperCase();var o=O[id],d=function(x){return x.replace(/\D/g,"").slice(-9)};
  if(!o||d(o.phone)!=d(ph))return null;return o}
 function showT(id,o){$("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and phone number, or message us on WhatsApp.</p>'}
@@ -202,6 +208,19 @@ $("#rf").onsubmit=function(e){e.preventDefault();var form=e.target,
  var id="ABK-2026-"+String(seq++).padStart(6,"0");
  O[id]={phone:ph,name:$("#n").value,item:item,date:new Date().toDateString(),ship:sea?"Sea":"Air",eta:eta,total:0,done:1,dates:[stamp()],pay:[]};
  S("abk_o",O);S("abk_s",seq);fin(id)};
+var cur_id=0;
+function pics(p){return p.imgs&&p.imgs.length?p.imgs:(p.img?[p.img]:[])}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function openP(id){var p=byId(id);if(!p)return;var im=pics(p),no=p.stock<1;cur_id=p.id;
+ $("#pdc").innerHTML='<div style="text-align:right"><button class="chip" id="pdx">Close</button></div><div class="pg"><div><div class="big" id="pbig">'+(im[0]?'<img id="pbi" src="'+im[0]+'" alt="'+esc(p.name)+'">':'<span style="font-size:80px">'+p.emoji+'</span>')+'</div>'+(im.length>1?'<div class="ths">'+im.map(function(u,i){return'<img src="'+u+'" data-t="'+i+'" class="'+(i?"":"on")+'" alt="Photo '+(i+1)+'">'}).join("")+'</div>':'')+(im[0]?'<p class="stk" style="margin:6px 0 0">Tap the photo to enlarge</p>':'')+'</div><div><h3 style="font-size:26px">'+esc(p.name)+'</h3><p class="stk" style="margin:4px 0 10px">'+esc(p.cat)+' · Ships from China</p><p class="price" style="font-size:22px;margin:0 0 6px">'+(p.price?'ETB '+fmt(p.price):'Price on quotation')+'</p><p class="stk '+(no?"no":p.stock<=3?"low":"")+'">'+(no?"Out of stock":p.stock<=3?"Only "+p.stock+" left":p.stock+" in stock")+'</p><p style="white-space:pre-line">'+(p.descr?esc(p.descr):"No description yet. Message us on WhatsApp for details.")+'</p><div class="note">By air: about 7–14 days. By sea: about 2–3 months, lower cost. Pay 50% to start and 50% when it arrives in Addis Ababa.</div><button class="btn" id="pdo"'+(no?" disabled":"")+'>'+(no?"Out of stock":"Order this")+'</button> <a class="btn line" target="_blank" rel="noopener" href="https://wa.me/251707906272?text='+encodeURIComponent("Hello, I want to ask about: "+p.name)+'">Ask on WhatsApp</a></div></div>';
+ $("#pd").classList.add("open")}
+$("#pd").onclick=function(e){var t=e.target,d=t.dataset,box=this;
+ if(t.id=="pd"||t.id=="pdx")box.classList.remove("open");
+ if(d.t){$("#pbi").src=t.src;[].forEach.call(box.querySelectorAll(".ths img"),function(x){x.classList.toggle("on",x===t)})}
+ if(t.id=="pdo"){box.classList.remove("open");$("#sel").value=cur_id;selchg();$("#request").scrollIntoView();$("#n").focus()}
+ if(t.id=="pbi"){$("#lbi").src=t.src;$("#lb").classList.add("open")}};
+$("#lb").onclick=function(){this.classList.remove("open")};
+document.addEventListener("keydown",function(e){if(e.key=="Escape"){$("#pd").classList.remove("open");$("#lb").classList.remove("open")}});
 /* owner area */
 var admin=false;
 function route(){var a=$("#adm");if(location.hash=="#admin"){a.style.display="block";admin?arender():alogin();a.scrollIntoView()}else a.style.display="none"}
@@ -210,30 +229,31 @@ function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" sty
  $("#sp").onchange=function(){$("#apw").type=this.checked?"text":"password"};
  $("#al").onclick=function(){if(!REMOTE){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password.";return}
   api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;return api("/rest/v1/orders?select=*&order=created_at.asc")}).then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
-function sp(p){if(!REMOTE){S("abk_p",P);refresh();return}
- api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"}).then(load).then(refresh).catch(function(x){alert("Could not save: "+x.message)})}
+function sp(p,k){if(!REMOTE){S("abk_p",P);refresh();return}
+ (k?api("/rest/v1/products?id=eq."+p.id,{m:"PATCH",b:k}):api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"})).then(load).then(refresh).catch(function(x){alert("Could not save: "+x.message)})}
 function refresh(){arender();fillSel();chips();grid()}
-function shrink(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,700/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(f)}
+function shrinkAll(fs,cb){var out=[],n=Math.min(fs.length,4),k=0;if(!n)return cb([]);for(var i=0;i<n;i++)(function(i){shrink(fs[i],function(d){out[i]=d;if(++k==n)cb(out)})})(i)}
+function shrink(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,900/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(f)}
 function arender(){var ids=Object.keys(O).reverse();
  var h='<h2>Owner dashboard</h2><p class="sub">Add products, upload photos and change stock. Stock goes down by itself when a customer orders.</p><div class="note">Prototype: changes are saved only in this browser. The real version saves them in your database so every customer sees them.</div>';
- h+='<div class="card"><h3 style="font-size:20px">Add a product</h3><div class="two"><div><label for="an">Name</label><input id="an"></div><div><label for="ac">Category</label><input id="ac" list="cl" placeholder="e.g. Shoes"><datalist id="cl">'+cats().slice(1).map(function(c){return'<option>'+c+'</option>'}).join("")+'</datalist></div><div><label for="ap2">Price (ETB, optional)</label><input id="ap2" type="number" min="0"></div><div><label for="as">Stock</label><input id="as" type="number" min="0" value="1"></div></div><label for="ai">Photo</label><input id="ai" type="file" accept="image/*"><p style="margin:16px 0 0"><button class="btn gold" id="aa">Add product</button></p></div>';
- h+='<h3 style="margin:26px 0 8px;font-size:20px">Products and stock</h3><div class="card" style="overflow-x:auto"><table><tr><th>Photo</th><th>Product</th><th>Price (ETB)</th><th>Stock</th><th></th></tr>'+P.map(function(p){return'<tr><td>'+(p.img?'<img class="t" src="'+p.img+'" alt="">':'<span style="font-size:28px">'+p.emoji+'</span>')+'<br><button class="chip" data-ph="'+p.id+'">Photo</button></td><td>'+p.name+'<br><small>'+p.cat+'</small></td><td><input type="number" min="0" style="width:90px;padding:6px" data-pr="'+p.id+'" value="'+p.price+'"></td><td class="qty"><button class="chip" data-d="-1" data-i="'+p.id+'">−</button><input type="number" min="0" data-s="'+p.id+'" value="'+p.stock+'"><button class="chip" data-d="1" data-i="'+p.id+'">+</button></td><td><button class="chip" data-x="'+p.id+'">Delete</button></td></tr>'}).join("")+'</table><input type="file" id="pf" accept="image/*" style="display:none"></div>';
+ h+='<div class="card"><h3 style="font-size:20px">Add a product</h3><div class="two"><div><label for="an">Name</label><input id="an"></div><div><label for="ac">Category</label><input id="ac" list="cl" placeholder="e.g. Shoes"><datalist id="cl">'+cats().slice(1).map(function(c){return'<option>'+c+'</option>'}).join("")+'</datalist></div><div><label for="ap2">Price (ETB, optional)</label><input id="ap2" type="number" min="0"></div><div><label for="as">Stock</label><input id="as" type="number" min="0" value="1"></div></div><label for="ad">Description</label><textarea id="ad" rows="3" placeholder="Size, material, colours, what is included"></textarea><label for="ai">Photos (up to 4)</label><input id="ai" type="file" accept="image/*" multiple><p style="margin:16px 0 0"><button class="btn gold" id="aa">Add product</button></p></div>';
+ h+='<h3 style="margin:26px 0 8px;font-size:20px">Products and stock</h3><div class="card" style="overflow-x:auto"><table><tr><th>Photo</th><th>Product</th><th>Details</th><th>Price (ETB)</th><th>Stock</th><th></th></tr>'+P.map(function(p){return'<tr><td>'+(pics(p)[0]?'<img class="t" src="'+pics(p)[0]+'" alt="">':'<span style="font-size:28px">'+p.emoji+'</span>')+'<br><small>'+pics(p).length+'/4</small><br><button class="chip" data-ph="'+p.id+'">Add photos</button> <button class="chip" data-cp="'+p.id+'">Clear</button></td><td>'+esc(p.name)+'<br><small>'+esc(p.cat)+'</small></td><td><textarea data-de="'+p.id+'" rows="3" style="min-width:170px" placeholder="Describe the product">'+esc(p.descr||"")+'</textarea></td><td><input type="number" min="0" style="width:90px;padding:6px" data-pr="'+p.id+'" value="'+p.price+'"></td><td class="qty"><button class="chip" data-d="-1" data-i="'+p.id+'">−</button><input type="number" min="0" data-s="'+p.id+'" value="'+p.stock+'"><button class="chip" data-d="1" data-i="'+p.id+'">+</button></td><td><button class="chip" data-x="'+p.id+'">Delete</button></td></tr>'}).join("")+'</table><input type="file" id="pf" accept="image/*" multiple style="display:none"></div>';
  h+='<h3 style="margin:26px 0 8px;font-size:20px">Orders</h3><div class="card" style="overflow-x:auto">'+(ids.length?'<table><tr><th>Order ID</th><th>Customer</th><th>Item</th><th>Shipping</th><th>Status</th></tr>'+ids.map(function(id){var o=O[id];return'<tr><td>'+id+'</td><td>'+(o.name||"")+'<br><small>'+o.phone+'</small></td><td>'+o.item+'</td><td>'+(o.ship||"")+'</td><td><select data-o="'+id+'" style="padding:6px">'+STEPS.map(function(t,i){return'<option value="'+i+'"'+(i==o.done-1?" selected":"")+'>'+t[0]+'</option>'}).join("")+'</select></td></tr>'}).join("")+'</table>':'<p class="sub" style="margin:0">No orders yet.</p>')+'</div>';
  $("#adm").innerHTML=h}
 var pick=0;
 function byId(i){return P.filter(function(p){return String(p.id)==String(i)})[0]}
 $("#adm").onclick=function(e){var t=e.target,d=t.dataset;
  if(t.id=="aa"){var n=$("#an").value.trim();if(!n){alert("Enter a product name.");return}
-  var add=function(img){P.push({id:Date.now(),name:n,cat:$("#ac").value.trim()||"Other",price:+$("#ap2").value||0,stock:Math.max(0,parseInt($("#as").value)||0),emoji:"📦",img:img||""});sp(P[P.length-1])};
-  var f=$("#ai").files[0];f?shrink(f,add):add("")}
- if(d.d){var p=byId(d.i);p.stock=Math.max(0,p.stock+ +d.d);sp(p)}
+  var add=function(imgs){P.push({id:Date.now(),name:n,cat:$("#ac").value.trim()||"Other",price:+$("#ap2").value||0,stock:Math.max(0,parseInt($("#as").value)||0),emoji:"📦",img:"",imgs:imgs,descr:$("#ad").value.trim()});sp(P[P.length-1])};
+  shrinkAll($("#ai").files,add)}
+ if(d.d){var p=byId(d.i);p.stock=Math.max(0,p.stock+ +d.d);sp(p,{stock:p.stock})}
  if(d.x&&confirm("Delete this product?")){if(REMOTE){api("/rest/v1/products?id=eq."+d.x,{m:"DELETE"}).then(load).then(refresh).catch(function(x){alert(x.message)})}else{P=P.filter(function(p){return String(p.id)!=d.x});S("abk_p",P);refresh()}}
- if(d.ph){pick=d.ph;$("#pf").click()}};
+ if(d.ph){pick=d.ph;$("#pf").click()}if(d.cp&&confirm("Remove all photos of this product?")){var q=byId(d.cp);q.imgs=[];q.img="";sp(q)}};
 $("#adm").onchange=function(e){var t=e.target,d=t.dataset;
- if(d.s){var p=byId(d.s);p.stock=Math.max(0,parseInt(t.value)||0);sp(p)}
- if(d.pr){var p2=byId(d.pr);p2.price=Math.max(0,+t.value||0);sp(p2)}
+ if(d.de){var p3=byId(d.de);p3.descr=t.value;sp(p3,{descr:p3.descr})}if(d.s){var p=byId(d.s);p.stock=Math.max(0,parseInt(t.value)||0);sp(p,{stock:p.stock})}
+ if(d.pr){var p2=byId(d.pr);p2.price=Math.max(0,+t.value||0);sp(p2,{price:p2.price})}
  if(d.o){var o=O[d.o],k=+t.value;o.done=k+1;for(var i=0;i<=k;i++)if(!o.dates[i])o.dates[i]=stamp();REMOTE?api("/rest/v1/orders?id=eq."+d.o,{m:"PATCH",b:{done:o.done,dates:o.dates}}).catch(function(x){alert(x.message)}):S("abk_o",O)}
- if(t.id=="pf"&&t.files[0])shrink(t.files[0],function(img){var p=byId(pick);p.img=img;sp(p)})};
+ if(t.id=="pf"&&t.files[0]){shrinkAll(t.files,function(a){var p=byId(pick);p.imgs=pics(p).concat(a).slice(0,4);p.img="";sp(p)});t.value=""}};
 $("#m").onclick=function(e){if(e.target.id=="m")$("#m").classList.remove("open")};
 $("#heroTrack").innerHTML='<h3>Follow every order</h3><p class="meta">Each order gets its own ID. These are the steps you will see.</p><ul class="tl">'+STEPS.map(function(s){return'<li><span class="dot"></span><div class="row">'+s[0]+'</div><small>'+s[1]+'</small></li>'}).join("")+'</ul><a class="btn" href="#track">Track my order</a>';
 chips();fillSel();grid();route();if(REMOTE){$("#grid").innerHTML='<p class="sub">Loading products…</p>';load().catch(function(){$("#grid").innerHTML='<p class="err">Could not load products. Please refresh the page.</p>'})}var spl=$("#splash");spl.onclick=function(){spl.remove()};setTimeout(function(){spl.remove()},3000);
