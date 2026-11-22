@@ -146,11 +146,15 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 var $=function(s){return document.querySelector(s)};
 var L=function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 var S=function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert("Storage is full. Use smaller photos.")}};
+var CFG={url:"https://bvhxlvajgobndolykarc.supabase.co",key:"sb_publishable_OjaXkevSZQK7GWa1I4cbyA_PKOG-QrV"},REMOTE=!!(CFG.url&&CFG.key),tok="";
+function api(path,o){o=o||{};var h={apikey:CFG.key,"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;if(o.prefer)h.Prefer=o.prefer;
+ return fetch(CFG.url+path,{method:o.m||"GET",headers:h,body:o.b?JSON.stringify(o.b):undefined}).then(function(r){return r.text().then(function(t){var j=t?JSON.parse(t):null;if(!r.ok)throw new Error(j&&(j.message||j.msg||j.error_description)||"Request failed");return j})})}
+function load(){return api("/rest/v1/products?select=*&order=id").then(function(r){P=r;chips();fillSel();grid()})}
 function stamp(){var n=new Date();return n.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+n.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}
 var P=L("abk_p",[{id:1,name:"Skate shoes",cat:"Shoes",price:0,stock:10,emoji:"🛼",img:""},{id:2,name:"Power banks",cat:"Electronics",price:0,stock:10,emoji:"🔋",img:""},{id:3,name:"Phone cases",cat:"Phone accessories",price:0,stock:10,emoji:"📱",img:""}]);
 var cat="All";function cats(){return["All"].concat(P.map(function(p){return p.cat}).filter(function(c,i,x){return x.indexOf(c)==i}))}
 var STEPS=[["Request received","We’ve received your request."],["Quotation sent","Review and accept your quotation."],["Deposit paid (50%)","Your deposit is confirmed."],["Ordered from supplier","The supplier has confirmed your order."],["Shipped","Your order is on the way to Ethiopia."],["Arrived in Ethiopia","Your order is in our Addis Ababa office."],["Balance paid (50%)","Final payment is confirmed."],["Delivered","Your order has been handed over."]];
-var O=L("abk_o",{});
+if(REMOTE)P=[];var O=L("abk_o",{});
 var seq=L("abk_s",1);
 function fmt(n){return n.toLocaleString("en-US")}
 function trackHTML(id,o){
@@ -176,30 +180,37 @@ $("#q").oninput=grid;
 $("#grid").onclick=function(e){var n=e.target.dataset.n;if(n){$("#sel").value=n;selchg();$("#request").scrollIntoView();$("#n").focus()}};
 function lookup(id,ph){id=id.trim().toUpperCase();var o=O[id],d=function(x){return x.replace(/\D/g,"").slice(-9)};
  if(!o||d(o.phone)!=d(ph))return null;return o}
-$("#tf").onsubmit=function(e){e.preventDefault();var id=$("#oid").value.trim().toUpperCase(),o=lookup(id,$("#ph").value);
- $("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and phone number, or message us on WhatsApp.</p>'};
+function showT(id,o){$("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and phone number, or message us on WhatsApp.</p>'}
+$("#tf").onsubmit=function(e){e.preventDefault();var id=$("#oid").value.trim().toUpperCase();
+ if(!REMOTE){showT(id,lookup(id,$("#ph").value));return}
+ api("/rest/v1/rpc/track_order",{m:"POST",b:{p_id:id,p_phone:$("#ph").value}}).then(function(o){if(o)O[id]=o;showT(id,o)}).catch(function(){showT(id,null)})};
 $("#img").onchange=function(e){var t=$("#th");t.innerHTML="";Array.prototype.slice.call(e.target.files,0,5).forEach(function(f){var r=new FileReader();r.onload=function(){var i=new Image();i.src=r.result;t.appendChild(i)};r.readAsDataURL(f)})};
 function fillSel(){$("#sel").innerHTML='<option value="">Other product (describe below)</option>'+P.map(function(p){return'<option value="'+p.id+'"'+(p.stock<1?" disabled":"")+'>'+p.name+(p.stock<1?" (out of stock)":"")+'</option>'}).join("");selchg()}
 function cur(){var v=$("#sel").value;return P.filter(function(p){return String(p.id)==v})[0]}
 function selchg(){var p=cur();$("#pnw").style.display=p?"none":"block";$("#selinfo").textContent=p?p.stock+" in stock":""}
 $("#sel").onchange=selchg;
-$("#rf").onsubmit=function(e){e.preventDefault();
- var p=cur(),q=Math.max(1,parseInt($("#qty").value)||1),name=p?p.name:$("#pn").value.trim();
+$("#rf").onsubmit=function(e){e.preventDefault();var form=e.target,
+ p=cur(),q=Math.max(1,parseInt($("#qty").value)||1),name=p?p.name:$("#pn").value.trim(),sea=$("#ship").value=="sea",ph=$("#p").value;
  if(!name){alert("Please type the product name or link.");return}
  if(p&&q>p.stock){alert("Only "+p.stock+" in stock.");return}
+ var item=name.slice(0,40)+(q>1?" × "+q:""),eta=sea?"About 2–3 months (sea)":"About 7–14 days (air)";
+ var fin=function(id){$("#rres").innerHTML='<div class="ok"><span>Request received. Your Order ID:</span><br><b>'+id+'</b><p style="margin:8px 0 12px">Save this ID. We’ll send your quotation in ETB by phone or WhatsApp.</p><button class="btn" id="go">Track this order</button></div>';
+  $("#go").onclick=function(){$("#oid").value=id;$("#ph").value=ph;$("#tf").requestSubmit();$("#track").scrollIntoView()};
+  form.reset();$("#th").innerHTML="";fillSel();grid()};
+ if(REMOTE){api("/rest/v1/rpc/place_order",{m:"POST",b:{p_name:$("#n").value,p_phone:ph,p_item:item,p_product:p?p.id:null,p_qty:q,p_ship:sea?"Sea":"Air",p_eta:eta,p_city:$("#c").value,p_details:$("#d").value}}).then(function(id){return load().then(function(){fin(id)})}).catch(function(x){alert(x.message);load()});return}
  if(p){p.stock-=q;S("abk_p",P)}
- var id="ABK-2026-"+String(seq++).padStart(6,"0"),ph=$("#p").value,sea=$("#ship").value=="sea";
- O[id]={phone:ph,name:$("#n").value,item:name.slice(0,40)+(q>1?" × "+q:""),date:new Date().toDateString(),ship:sea?"Sea":"Air",eta:sea?"About 2–3 months (sea)":"About 7–14 days (air)",total:0,done:1,dates:[stamp()],pay:[]};
- S("abk_o",O);S("abk_s",seq);
- $("#rres").innerHTML='<div class="ok"><span>Request received. Your Order ID:</span><br><b>'+id+'</b><p style="margin:8px 0 12px">Save this ID. We’ll send your quotation in ETB by phone or WhatsApp.</p><button class="btn" id="go">Track this order</button></div>';
- $("#go").onclick=function(){$("#oid").value=id;$("#ph").value=ph;$("#tf").requestSubmit();$("#track").scrollIntoView()};
- e.target.reset();$("#th").innerHTML="";fillSel();grid()};
+ var id="ABK-2026-"+String(seq++).padStart(6,"0");
+ O[id]={phone:ph,name:$("#n").value,item:item,date:new Date().toDateString(),ship:sea?"Sea":"Air",eta:eta,total:0,done:1,dates:[stamp()],pay:[]};
+ S("abk_o",O);S("abk_s",seq);fin(id)};
 /* owner area */
 var admin=false;
 function route(){var a=$("#adm");if(location.hash=="#admin"){a.style.display="block";admin?arender():alogin();a.scrollIntoView()}else a.style.display="none"}
 window.addEventListener("hashchange",route);
-function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" style="max-width:360px;margin-top:16px"><label for="apw">Password</label><input id="apw" type="password"><p style="margin:14px 0 0"><button class="btn" id="al">Log in</button></p><p class="err" id="ae"></p></div>';
- $("#al").onclick=function(){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password."}}
+function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" style="max-width:360px;margin-top:16px">'+(REMOTE?'<label for="aem">Email</label><input id="aem" type="email">':'')+'<label for="apw">Password</label><input id="apw" type="password"><p style="margin:14px 0 0"><button class="btn" id="al">Log in</button></p><p class="err" id="ae"></p></div>';
+ $("#al").onclick=function(){if(!REMOTE){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password.";return}
+  api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;return api("/rest/v1/orders?select=*&order=created_at.asc")}).then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
+function sp(p){if(!REMOTE){S("abk_p",P);refresh();return}
+ api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"}).then(load).then(refresh).catch(function(x){alert("Could not save: "+x.message)})}
 function refresh(){arender();fillSel();chips();grid()}
 function shrink(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,700/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(f)}
 function arender(){var ids=Object.keys(O).reverse();
@@ -212,19 +223,19 @@ var pick=0;
 function byId(i){return P.filter(function(p){return String(p.id)==String(i)})[0]}
 $("#adm").onclick=function(e){var t=e.target,d=t.dataset;
  if(t.id=="aa"){var n=$("#an").value.trim();if(!n){alert("Enter a product name.");return}
-  var add=function(img){P.push({id:Date.now(),name:n,cat:$("#ac").value.trim()||"Other",price:+$("#ap2").value||0,stock:Math.max(0,parseInt($("#as").value)||0),emoji:"📦",img:img||""});S("abk_p",P);refresh()};
+  var add=function(img){P.push({id:Date.now(),name:n,cat:$("#ac").value.trim()||"Other",price:+$("#ap2").value||0,stock:Math.max(0,parseInt($("#as").value)||0),emoji:"📦",img:img||""});sp(P[P.length-1])};
   var f=$("#ai").files[0];f?shrink(f,add):add("")}
- if(d.d){var p=byId(d.i);p.stock=Math.max(0,p.stock+ +d.d);S("abk_p",P);refresh()}
- if(d.x&&confirm("Delete this product?")){P=P.filter(function(p){return String(p.id)!=d.x});S("abk_p",P);refresh()}
+ if(d.d){var p=byId(d.i);p.stock=Math.max(0,p.stock+ +d.d);sp(p)}
+ if(d.x&&confirm("Delete this product?")){if(REMOTE){api("/rest/v1/products?id=eq."+d.x,{m:"DELETE"}).then(load).then(refresh).catch(function(x){alert(x.message)})}else{P=P.filter(function(p){return String(p.id)!=d.x});S("abk_p",P);refresh()}}
  if(d.ph){pick=d.ph;$("#pf").click()}};
 $("#adm").onchange=function(e){var t=e.target,d=t.dataset;
- if(d.s){byId(d.s).stock=Math.max(0,parseInt(t.value)||0);S("abk_p",P);refresh()}
- if(d.pr){byId(d.pr).price=Math.max(0,+t.value||0);S("abk_p",P);refresh()}
- if(d.o){var o=O[d.o],k=+t.value;o.done=k+1;for(var i=0;i<=k;i++)if(!o.dates[i])o.dates[i]=stamp();S("abk_o",O)}
- if(t.id=="pf"&&t.files[0])shrink(t.files[0],function(img){byId(pick).img=img;S("abk_p",P);refresh()})};
+ if(d.s){var p=byId(d.s);p.stock=Math.max(0,parseInt(t.value)||0);sp(p)}
+ if(d.pr){var p2=byId(d.pr);p2.price=Math.max(0,+t.value||0);sp(p2)}
+ if(d.o){var o=O[d.o],k=+t.value;o.done=k+1;for(var i=0;i<=k;i++)if(!o.dates[i])o.dates[i]=stamp();REMOTE?api("/rest/v1/orders?id=eq."+d.o,{m:"PATCH",b:{done:o.done,dates:o.dates}}).catch(function(x){alert(x.message)}):S("abk_o",O)}
+ if(t.id=="pf"&&t.files[0])shrink(t.files[0],function(img){var p=byId(pick);p.img=img;sp(p)})};
 $("#m").onclick=function(e){if(e.target.id=="m")$("#m").classList.remove("open")};
 $("#heroTrack").innerHTML='<h3>Follow every order</h3><p class="meta">Each order gets its own ID. These are the steps you will see.</p><ul class="tl">'+STEPS.map(function(s){return'<li><span class="dot"></span><div class="row">'+s[0]+'</div><small>'+s[1]+'</small></li>'}).join("")+'</ul><a class="btn" href="#track">Track my order</a>';
-chips();fillSel();grid();route();var sp=$("#splash");sp.onclick=function(){sp.remove()};setTimeout(function(){sp.remove()},3000);
+chips();fillSel();grid();route();if(REMOTE){$("#grid").innerHTML='<p class="sub">Loading products…</p>';load().catch(function(){$("#grid").innerHTML='<p class="err">Could not load products. Please refresh the page.</p>'})}var spl=$("#splash");spl.onclick=function(){spl.remove()};setTimeout(function(){spl.remove()},3000);
 </script>
 </body>
 </html>
