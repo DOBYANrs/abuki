@@ -92,6 +92,7 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 #pdc{max-width:760px}.pg{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}@media(max-width:640px){.pg{grid-template-columns:1fr}}
 .big{background:var(--info);border-radius:14px;display:grid;place-items:center;aspect-ratio:1;overflow:hidden;cursor:zoom-in}.big img{width:100%;height:100%;object-fit:contain}
 .ths{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.ths img{width:58px;height:58px;object-fit:cover;border-radius:8px;border:2px solid transparent;cursor:pointer}.ths img.on{border-color:var(--green2)}
+#toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);z-index:60;display:none;max-width:90vw;font-size:14px}#toast.er{background:#C0392B;color:#fff}
 </style>
 </head>
 <body>
@@ -146,6 +147,7 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 
 <div class="modal" id="m"><div class="card" id="mc"></div></div>
 <div class="modal" id="pd"><div class="card" id="pdc"></div></div>
+<div id="toast" role="status"></div>
 <div class="modal" id="lb" style="background:rgba(0,0,0,.92)"><img id="lbi" alt="Product photo" style="max-width:100%;max-height:100%;object-fit:contain"></div>
 
 <script>
@@ -229,8 +231,9 @@ function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" sty
  $("#sp").onchange=function(){$("#apw").type=this.checked?"text":"password"};
  $("#al").onclick=function(){if(!REMOTE){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password.";return}
   api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;return api("/rest/v1/orders?select=*&order=created_at.asc")}).then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
+function toast(m,e){var t=$("#toast");t.textContent=m;t.className=e?"er":"";t.style.display="block";clearTimeout(window.tt);window.tt=setTimeout(function(){t.style.display="none"},e?9000:2000)}
 function sp(p,k){if(!REMOTE){S("abk_p",P);refresh();return}
- (k?api("/rest/v1/products?id=eq."+p.id,{m:"PATCH",b:k}):api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"})).then(load).then(refresh).catch(function(x){alert("Could not save: "+x.message)})}
+ (k?api("/rest/v1/products?id=eq."+p.id,{m:"PATCH",b:k}):api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"})).then(load).then(refresh).then(function(){toast("Saved")}).catch(function(x){toast("Could not save: "+x.message,1)})}
 function refresh(){arender();fillSel();chips();grid()}
 function shrinkAll(fs,cb){var out=[],n=Math.min(fs.length,4),k=0;if(!n)return cb([]);for(var i=0;i<n;i++)(function(i){shrink(fs[i],function(d){out[i]=d;if(++k==n)cb(out)})})(i)}
 function shrink(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,900/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(f)}
