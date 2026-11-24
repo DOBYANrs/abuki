@@ -129,9 +129,9 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 <div id="rres"></div></form></div></section>
 
 <section id="track"><h2>Track your order</h2><p class="sub">Enter your Order ID and the phone number you used.</p>
-<div class="card"><form id="tf" class="two" style="align-items:end"><div><label for="oid">Order ID</label><input id="oid" placeholder="ABK-2026-000001" required></div><div><label for="ph">Phone number</label><input id="ph" type="tel" placeholder="09…" required></div>
+<div class="card"><div id="my"></div><form id="tf" class="two" style="align-items:end"><div><label for="oid">Order ID</label><input id="oid" placeholder="ABK-2026-000001" required></div><div><label for="ph">Access code</label><input id="ph" placeholder="Your access code" autocomplete="off" required></div>
 <div><button class="btn" type="submit">Track order</button></div></form>
-<div class="note">Orders sent through the request form can be tracked here. In this prototype they are saved only in this browser.</div><div id="tres"></div></div></section>
+<div class="note">Use the Order ID and access code you got when you sent your request. Keep your code private: anyone who has it can see that order.</div><div id="tres"></div></div></section>
 
 <section id="terms"><h2>Delivery and payment</h2><p class="sub">Simple terms, written down before you pay.</p>
 <div class="terms"><div class="card"><h3>Payment</h3><p>We accept Telebirr and CBE. All prices are in ETB. You pay 50% after accepting a quotation and 50% when your order arrives in Addis Ababa, before delivery.</p></div>
@@ -143,7 +143,7 @@ footer{background:var(--green);color:var(--on);padding:30px 18px;text-align:cent
 <section id="adm" class="adm" style="display:none"></section>
 </main>
 
-<footer><b>ABUKI MARKET</b><br>WhatsApp: <a href="https://wa.me/251707906272">0707 906 272</a><br><a href="#admin" style="font-weight:400;font-size:12px">Owner login</a></footer>
+<footer><b>ABUKI MARKET</b><br>Call to buy: <a href="tel:0986360607">0986 360 607</a> · <a href="tel:0986369262">0986 369 262</a><br>WhatsApp: <a href="https://wa.me/251707906272">0707 906 272</a><br><a href="#admin" style="font-weight:400;font-size:12px">Owner login</a></footer>
 
 <div class="modal" id="m"><div class="card" id="mc"></div></div>
 <div class="modal" id="pd"><div class="card" id="pdc"></div></div>
@@ -170,13 +170,21 @@ function trackHTML(id,o){
  var h='<h3>Track order #'+id+'</h3><div class="meta">'+o.date+' · '+o.item+'</div><div class="pills"><div class="pill a">Status<b>'+st+'</b></div><div class="pill b">Estimated delivery<b>'+(o.eta||"Set with quotation")+'</b></div></div><b>Tracking details</b><ul class="tl">';
  STEPS.forEach(function(s,i){var d=i<o.done;h+='<li class="'+(d?"done":"")+'"><span class="dot">'+(d?"✓":"")+'</span><div class="row">'+s[0]+'<span>'+(d?(o.dates[i]||""):"Expected")+'</span></div><small>'+s[1]+'</small></li>'});
  return h+'</ul>'}
-function payHTML(id,o){
- if(!o.pay||!o.pay.length)return'<p class="sub">Payment records will appear here once your quotation is accepted.</p>';
+var PAY={lines:"Telebirr 0986 360 607 · CBE account 1000633166327 · Account name: Abubeker Abdo Mussa"}; /* owner: put Telebirr number and CBE account here, e.g. "Telebirr 09xx xxx xxx. CBE account 1000xxxxxxxxx, name ..." */
+function pf(o,k){return(o.pay||[]).filter(function(x){return x.k.indexOf(k)==0})[0]}
+function proofBox(k){return(PAY.lines?'<p style="margin:6px 0">Pay using: '+PAY.lines+'</p>':'<p style="margin:6px 0">We will send you the payment account by phone or WhatsApp.</p>')+'<label for="pm">Paid with</label><select id="pm"><option>Telebirr</option><option>CBE</option></select><label for="rcp">Photo of your payment receipt</label><input id="rcp" type="file" accept="image/*"><p style="margin:12px 0 0"><button class="btn gold" id="sendr" data-k="'+k+'">Send receipt</button></p>'}
+function actHTML(id,o){var dep=o.total?Math.ceil(o.total/2):0,d=pf(o,"Deposit"),b=pf(o,"Balance"),h="";
+ if(!o.total||o.done<2)h='We are preparing your quotation. We will contact you by phone or WhatsApp.';
+ else if(!o.accepted)h='<b>Your quotation: ETB '+fmt(o.total)+'</b>'+(o.qnote?'<br>'+esc(o.qnote):'')+'<p style="margin:6px 0">Deposit now (50%): ETB '+fmt(dep)+'. Balance (50%): ETB '+fmt(o.total-dep)+'.</p><button class="btn" id="acc">Accept quotation</button>';
+ else if(!d||d.st!="Paid")h=d?'We received your deposit receipt and are checking it.':'<b>Pay your 50% deposit: ETB '+fmt(dep)+'</b>'+proofBox("Deposit 50%");
+ else if(o.done>=6&&(!b||b.st!="Paid"))h=b?'We received your balance receipt and are checking it.':'<b>Your order arrived. Pay the balance: ETB '+fmt(o.total-dep)+'</b>'+proofBox("Balance 50%");
+ return h?'<div class="note" style="margin:0 0 16px"><b>Next step for you</b><br>'+h+'</div>':''}
+function payHTML(id,o){var pay=o.pay||[];if(!pay.length)return'<p class="sub">Payment records appear here after you send your receipts.</p>';
  var h='<h3 style="margin-top:26px;font-size:20px">Payment history</h3><p class="sub" style="margin:4px 0">Total: ETB '+fmt(o.total)+'</p><div style="overflow-x:auto"><table><tr><th>Date</th><th>Payment</th><th>Method</th><th>Amount (ETB)</th><th>Status</th><th></th></tr>';
- o.pay.forEach(function(p,i){h+='<tr><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+p[2]+'</td><td>'+fmt(p[3])+'</td><td><span class="tag '+(p[4]=="Paid"?"":"w")+'">'+p[4]+'</span></td><td>'+(p[4]=="Paid"?'<button class="chip" onclick="rcpt(\''+id+'\','+i+')">Receipt</button>':"")+'</td></tr>'});
+ pay.forEach(function(p,i){h+='<tr><td>'+p.d+'</td><td>'+p.k+'</td><td>'+(p.m||"")+'</td><td>'+fmt(p.amt)+'</td><td><span class="tag '+(p.st=="Paid"?"":"w")+'">'+(p.st=="Paid"?"Paid":"Waiting for verification")+'</span></td><td>'+(p.st=="Paid"?'<button class="chip" onclick="rcpt(\''+id+'\','+i+')">Receipt</button>':"")+'</td></tr>'});
  return h+'</table></div>'}
 function rcpt(id,i){var o=O[id],p=o.pay[i];
- $("#mc").innerHTML='<div id="rcpt"><h3>ABUKI MARKET</h3><p style="color:var(--mut);margin:4px 0 14px">Payment receipt</p><table><tr><td>Receipt no.</td><td>RCT-'+id.slice(4)+'-'+(i+1)+'</td></tr><tr><td>Order ID</td><td>'+id+'</td></tr><tr><td>Item</td><td>'+o.item+'</td></tr><tr><td>Payment</td><td>'+p[1]+'</td></tr><tr><td>Method</td><td>'+p[2]+'</td></tr><tr><td>Date</td><td>'+p[0]+'</td></tr><tr><td><b>Amount paid</b></td><td><b>ETB '+fmt(p[3])+'</b></td></tr><tr><td>Order total</td><td>ETB '+fmt(o.total)+'</td></tr></table></div><p style="margin:16px 0 0"><button class="btn" onclick="window.print()">Print or save PDF</button> <button class="btn line" onclick="$(\'#m\').classList.remove(\'open\')">Close</button></p>';
+ $("#mc").innerHTML='<div id="rcpt"><h3>ABUKI MARKET</h3><p style="color:var(--mut);margin:4px 0 14px">Payment receipt</p><table><tr><td>Receipt no.</td><td>RCT-'+id.slice(4)+'-'+(i+1)+'</td></tr><tr><td>Order ID</td><td>'+id+'</td></tr><tr><td>Item</td><td>'+esc(o.item)+'</td></tr><tr><td>Payment</td><td>'+p.k+'</td></tr><tr><td>Method</td><td>'+(p.m||"")+'</td></tr><tr><td>Date</td><td>'+p.d+'</td></tr><tr><td><b>Amount paid</b></td><td><b>ETB '+fmt(p.amt)+'</b></td></tr><tr><td>Order total</td><td>ETB '+fmt(o.total)+'</td></tr></table></div><p style="margin:16px 0 0"><button class="btn" onclick="window.print()">Print or save PDF</button> <button class="btn line" onclick="$(\'#m\').classList.remove(\'open\')">Close</button></p>';
  $("#m").classList.add("open")}
 function grid(){var q=$("#q").value.toLowerCase(),h="";
  P.filter(function(p){return(cat=="All"||p.cat==cat)&&p.name.toLowerCase().indexOf(q)>-1}).forEach(function(p){var no=p.stock<1;
@@ -188,33 +196,40 @@ $("#q").oninput=grid;
 $("#grid").onclick=function(e){var v=e.target.dataset.v;if(v){openP(v);return}var n=e.target.dataset.n;if(n){$("#sel").value=n;selchg();$("#request").scrollIntoView();$("#n").focus()}};
 function lookup(id,ph){id=id.trim().toUpperCase();var o=O[id],d=function(x){return x.replace(/\D/g,"").slice(-9)};
  if(!o||d(o.phone)!=d(ph))return null;return o}
-function showT(id,o){$("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and phone number, or message us on WhatsApp.</p>'}
-$("#tf").onsubmit=function(e){e.preventDefault();var id=$("#oid").value.trim().toUpperCase();
- if(!REMOTE){showT(id,lookup(id,$("#ph").value));return}
- api("/rest/v1/rpc/track_order",{m:"POST",b:{p_id:id,p_phone:$("#ph").value}}).then(function(o){if(o)O[id]=o;showT(id,o)}).catch(function(){showT(id,null)})};
+var curT=null;
+function mine(){return L("abk_my",[])}
+function addMine(id,code,item){var m=mine().filter(function(x){return x.id!=id});m.unshift({id:id,code:code,item:item});S("abk_my",m.slice(0,30));showMine()}
+function showMine(){var m=mine();$("#my").innerHTML=m.length?'<p class="sub" style="margin:0 0 8px">Orders on this phone:</p><div class="chips" style="margin:0 0 12px">'+m.map(function(x,i){return'<button type="button" class="chip" data-my="'+i+'">'+x.id+' · '+esc(x.item)+'</button>'}).join("")+'</div>':""}
+function showT(id,o){$("#tres").innerHTML=o?'<div class="trk" style="margin-top:20px">'+actHTML(id,o)+trackHTML(id,o)+payHTML(id,o)+'</div>':'<p class="err">We couldn’t find that order. Check the Order ID and access code, or call or message us.</p>'}
+function trackNow(id,code){curT={id:id,code:code};if(!REMOTE){showT(id,null);return}
+ return api("/rest/v1/rpc/track_order",{m:"POST",b:{p_id:id,p_code:code}}).then(function(o){if(o){O[id]=o;addMine(id,code,o.item)}showT(id,o)}).catch(function(){showT(id,null)})}
+$("#tf").onsubmit=function(e){e.preventDefault();trackNow($("#oid").value.trim().toUpperCase(),$("#ph").value.trim().toUpperCase())};
+$("#my").onclick=function(e){var i=e.target.dataset.my;if(i!==undefined){var x=mine()[i];$("#oid").value=x.id;$("#ph").value=x.code;trackNow(x.id,x.code)}};
+$("#tres").onclick=function(e){var t=e.target;
+ if(t.id=="acc"){api("/rest/v1/rpc/accept_quote",{m:"POST",b:{p_id:curT.id,p_code:curT.code}}).then(function(){toast("Quotation accepted");return trackNow(curT.id,curT.code)}).catch(function(x){toast(x.message,1)})}
+ if(t.id=="sendr"){var f=$("#rcp").files[0];if(!f){alert("Choose the photo of your payment receipt first.");return}
+  shrink(f,function(img){api("/rest/v1/rpc/submit_proof",{m:"POST",b:{p_id:curT.id,p_code:curT.code,p_kind:t.dataset.k,p_proof:img,p_method:$("#pm").value}}).then(function(){toast("Receipt sent. We will check it.");return trackNow(curT.id,curT.code)}).catch(function(x){toast(x.message,1)})})}};
 $("#img").onchange=function(e){var t=$("#th");t.innerHTML="";Array.prototype.slice.call(e.target.files,0,5).forEach(function(f){var r=new FileReader();r.onload=function(){var i=new Image();i.src=r.result;t.appendChild(i)};r.readAsDataURL(f)})};
 function fillSel(){$("#sel").innerHTML='<option value="">Other product (describe below)</option>'+P.map(function(p){return'<option value="'+p.id+'"'+(p.stock<1?" disabled":"")+'>'+p.name+(p.stock<1?" (out of stock)":"")+'</option>'}).join("");selchg()}
 function cur(){var v=$("#sel").value;return P.filter(function(p){return String(p.id)==v})[0]}
 function selchg(){var p=cur();$("#pnw").style.display=p?"none":"block";$("#selinfo").textContent=p?p.stock+" in stock":""}
 $("#sel").onchange=selchg;
-$("#rf").onsubmit=function(e){e.preventDefault();var form=e.target,
- p=cur(),q=Math.max(1,parseInt($("#qty").value)||1),name=p?p.name:$("#pn").value.trim(),sea=$("#ship").value=="sea",ph=$("#p").value;
+function mkcode(){var a="ABCDEFGHJKMNPQRSTUVWXYZ23456789",r=new Uint8Array(8);crypto.getRandomValues(r);return Array.prototype.map.call(r,function(x){return a[x%a.length]}).join("")}
+var sessCode="";
+$("#rf").onsubmit=function(e){e.preventDefault();var form=e.target,p=cur(),q=Math.max(1,parseInt($("#qty").value)||1),name=p?p.name:$("#pn").value.trim(),sea=$("#ship").value=="sea";
  if(!name){alert("Please type the product name or link.");return}
  if(p&&q>p.stock){alert("Only "+p.stock+" in stock.");return}
- var item=name.slice(0,40)+(q>1?" × "+q:""),eta=sea?"About 2–3 months (sea)":"About 7–14 days (air)";
- var fin=function(id){$("#rres").innerHTML='<div class="ok"><span>Request received. Your Order ID:</span><br><b>'+id+'</b><p style="margin:8px 0 12px">Save this ID. We’ll send your quotation in ETB by phone or WhatsApp.</p><button class="btn" id="go">Track this order</button></div>';
-  $("#go").onclick=function(){$("#oid").value=id;$("#ph").value=ph;$("#tf").requestSubmit();$("#track").scrollIntoView()};
-  form.reset();$("#th").innerHTML="";fillSel();grid()};
- if(REMOTE){api("/rest/v1/rpc/place_order",{m:"POST",b:{p_name:$("#n").value,p_phone:ph,p_item:item,p_product:p?p.id:null,p_qty:q,p_ship:sea?"Sea":"Air",p_eta:eta,p_city:$("#c").value,p_details:$("#d").value}}).then(function(id){return load().then(function(){fin(id)})}).catch(function(x){alert(x.message);load()});return}
- if(p){p.stock-=q;S("abk_p",P)}
- var id="ABK-2026-"+String(seq++).padStart(6,"0");
- O[id]={phone:ph,name:$("#n").value,item:item,date:new Date().toDateString(),ship:sea?"Sea":"Air",eta:eta,total:0,done:1,dates:[stamp()],pay:[]};
- S("abk_o",O);S("abk_s",seq);fin(id)};
+ if(!REMOTE){alert("Ordering needs the online database.");return}
+ if(!sessCode)sessCode=mkcode();var code=sessCode,item=name.slice(0,40)+(q>1?" × "+q:"");
+ api("/rest/v1/rpc/place_order",{m:"POST",b:{p_name:$("#n").value,p_phone:$("#p").value,p_item:item,p_product:p?p.id:null,p_qty:q,p_ship:sea?"Sea":"Air",p_eta:sea?"About 2–3 months (sea)":"About 7–14 days (air)",p_city:$("#c").value,p_details:$("#d").value,p_code:code}}).then(function(id){addMine(id,code,item);return load().then(function(){
+  $("#rres").innerHTML='<div class="ok"><span>Request received. Your Order ID:</span><br><b>'+id+'</b><p style="margin:8px 0 2px">Your access code:</p><b>'+code+'</b><p style="margin:8px 0 12px">Write both down. You need them to see this order. Other items you order in this visit use the same code, each with its own Order ID. We’ll send your quotation in ETB by phone or WhatsApp.</p><button class="btn" id="go">Track this order</button></div>';
+  $("#go").onclick=function(){$("#oid").value=id;$("#ph").value=code;$("#tf").requestSubmit();$("#track").scrollIntoView()};
+  form.reset();$("#th").innerHTML="";fillSel();grid()})}).catch(function(x){alert(x.message);load()})};
 var cur_id=0;
 function pics(p){return p.imgs&&p.imgs.length?p.imgs:(p.img?[p.img]:[])}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function openP(id){var p=byId(id);if(!p)return;var im=pics(p),no=p.stock<1;cur_id=p.id;
- $("#pdc").innerHTML='<div style="text-align:right"><button class="chip" id="pdx">Close</button></div><div class="pg"><div><div class="big" id="pbig">'+(im[0]?'<img id="pbi" src="'+im[0]+'" alt="'+esc(p.name)+'">':'<span style="font-size:80px">'+p.emoji+'</span>')+'</div>'+(im.length>1?'<div class="ths">'+im.map(function(u,i){return'<img src="'+u+'" data-t="'+i+'" class="'+(i?"":"on")+'" alt="Photo '+(i+1)+'">'}).join("")+'</div>':'')+(im[0]?'<p class="stk" style="margin:6px 0 0">Tap the photo to enlarge</p>':'')+'</div><div><h3 style="font-size:26px">'+esc(p.name)+'</h3><p class="stk" style="margin:4px 0 10px">'+esc(p.cat)+' · Ships from China</p><p class="price" style="font-size:22px;margin:0 0 6px">'+(p.price?'ETB '+fmt(p.price):'Price on quotation')+'</p><p class="stk '+(no?"no":p.stock<=3?"low":"")+'">'+(no?"Out of stock":p.stock<=3?"Only "+p.stock+" left":p.stock+" in stock")+'</p><p style="white-space:pre-line">'+(p.descr?esc(p.descr):"No description yet. Message us on WhatsApp for details.")+'</p><div class="note">By air: about 7–14 days. By sea: about 2–3 months, lower cost. Pay 50% to start and 50% when it arrives in Addis Ababa.</div><button class="btn" id="pdo"'+(no?" disabled":"")+'>'+(no?"Out of stock":"Order this")+'</button> <a class="btn line" target="_blank" rel="noopener" href="https://wa.me/251707906272?text='+encodeURIComponent("Hello, I want to ask about: "+p.name)+'">Ask on WhatsApp</a></div></div>';
+ $("#pdc").innerHTML='<div style="text-align:right"><button class="chip" id="pdx">Close</button></div><div class="pg"><div><div class="big" id="pbig">'+(im[0]?'<img id="pbi" src="'+im[0]+'" alt="'+esc(p.name)+'">':'<span style="font-size:80px">'+p.emoji+'</span>')+'</div>'+(im.length>1?'<div class="ths">'+im.map(function(u,i){return'<img src="'+u+'" data-t="'+i+'" class="'+(i?"":"on")+'" alt="Photo '+(i+1)+'">'}).join("")+'</div>':'')+(im[0]?'<p class="stk" style="margin:6px 0 0">Tap the photo to enlarge</p>':'')+'</div><div><h3 style="font-size:26px">'+esc(p.name)+'</h3><p class="stk" style="margin:4px 0 10px">'+esc(p.cat)+' · Ships from China</p><p class="price" style="font-size:22px;margin:0 0 6px">'+(p.price?'ETB '+fmt(p.price):'Price on quotation')+'</p><p class="stk '+(no?"no":p.stock<=3?"low":"")+'">'+(no?"Out of stock":p.stock<=3?"Only "+p.stock+" left":p.stock+" in stock")+'</p><p style="white-space:pre-line">'+(p.descr?esc(p.descr):"No description yet. Message us on WhatsApp for details.")+'</p><div class="note">By air: about 7–14 days. By sea: about 2–3 months, lower cost. Pay 50% to start and 50% when it arrives in Addis Ababa.</div><button class="btn" id="pdo"'+(no?" disabled":"")+'>'+(no?"Out of stock":"Order this")+'</button> <a class="btn line" href="tel:0986360607">Call to buy</a> <a class="btn line" target="_blank" rel="noopener" href="https://wa.me/251707906272?text='+encodeURIComponent("Hello, I want to ask about: "+p.name)+'">Ask on WhatsApp</a><p class="stk" style="margin-top:10px">Call: 0986 360 607 or 0986 369 262</p></div></div>';
  $("#pd").classList.add("open")}
 $("#pd").onclick=function(e){var t=e.target,d=t.dataset,box=this;
  if(t.id=="pd"||t.id=="pdx")box.classList.remove("open");
@@ -237,15 +252,27 @@ function sp(p,k){if(!REMOTE){S("abk_p",P);refresh();return}
 function refresh(){arender();fillSel();chips();grid()}
 function shrinkAll(fs,cb){var out=[],n=Math.min(fs.length,4),k=0;if(!n)return cb([]);for(var i=0;i<n;i++)(function(i){shrink(fs[i],function(d){out[i]=d;if(++k==n)cb(out)})})(i)}
 function shrink(f,cb){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,900/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.8))};i.src=r.result};r.readAsDataURL(f)}
+function adv(o,k){o.done=Math.max(o.done,k);o.dates=o.dates||[];for(var i=0;i<k;i++)if(!o.dates[i])o.dates[i]=stamp()}
+function po(id,k){api("/rest/v1/orders?id=eq."+id,{m:"PATCH",b:k}).then(function(){toast("Saved");arender()}).catch(function(x){toast("Could not save: "+x.message,1)})}
+function ordersHTML(ids){if(!ids.length)return'<div class="card"><p class="sub" style="margin:0">No orders yet.</p></div>';
+ return ids.map(function(id){var o=O[id],pay=o.pay||[],wait=pay.some(function(x){return x.st=="Pending"}),need=o.done==1?"Send a quotation":wait?"Verify payment":"";
+ return'<div class="card" style="margin-bottom:12px"><b>'+id+'</b> '+(need?'<span class="tag w">'+need+'</span>':'')+'<br>'+esc(o.name||"")+' · '+esc(o.phone||"")+' · '+esc(o.city||"")+'<br>'+esc(o.item)+' · '+esc(o.ship||"")+(o.details?'<br><small>'+esc(o.details)+'</small>':'')+
+ '<div class="two" style="margin-top:8px"><div><label for="qt'+id+'">Quotation total (ETB)</label><input id="qt'+id+'" type="number" min="0" value="'+(o.total||"")+'"></div><div><label for="qn'+id+'">Note to customer</label><input id="qn'+id+'" value="'+esc(o.qnote||"")+'" placeholder="Price + shipping + fee"></div></div><p style="margin:8px 0"><button class="chip" data-sq="'+id+'">Send quotation</button> <span class="stk">'+(o.accepted?"Customer accepted ✓":o.total?"Waiting for customer to accept":"")+'</span></p>'+
+ pay.map(function(x,i){return'<p style="margin:6px 0">'+esc(x.k)+' · ETB '+fmt(x.amt)+' · <span class="tag '+(x.st=="Paid"?"":"w")+'">'+x.st+'</span> '+(x.proof?'<button class="chip" data-vw="'+id+'|'+i+'">View receipt</button> ':'')+(x.st=="Pending"?'<button class="chip" data-vp="'+id+'|'+i+'">Verify</button> <button class="chip" data-rp="'+id+'|'+i+'">Reject</button>':'')+'</p>'}).join("")+
+ '<label for="so'+id+'">Move to step</label><select id="so'+id+'" data-o="'+id+'" style="padding:8px">'+STEPS.map(function(t,i){return'<option value="'+i+'"'+(i==o.done-1?" selected":"")+'>'+t[0]+'</option>'}).join("")+'</select></div>'}).join("")}
 function arender(){var ids=Object.keys(O).reverse();
- var h='<h2>Owner dashboard</h2><p class="sub">Add products, upload photos and change stock. Stock goes down by itself when a customer orders.</p><div class="note">Prototype: changes are saved only in this browser. The real version saves them in your database so every customer sees them.</div>';
+ var h='<h2>Owner dashboard</h2><p class="sub">Add products, upload photos and change stock. Stock goes down by itself when a customer orders.</p><div class="note">Changes are saved in your online database, so every customer sees them.</div>';
  h+='<div class="card"><h3 style="font-size:20px">Add a product</h3><div class="two"><div><label for="an">Name</label><input id="an"></div><div><label for="ac">Category</label><input id="ac" list="cl" placeholder="e.g. Shoes"><datalist id="cl">'+cats().slice(1).map(function(c){return'<option>'+c+'</option>'}).join("")+'</datalist></div><div><label for="ap2">Price (ETB, optional)</label><input id="ap2" type="number" min="0"></div><div><label for="as">Stock</label><input id="as" type="number" min="0" value="1"></div></div><label for="ad">Description</label><textarea id="ad" rows="3" placeholder="Size, material, colours, what is included"></textarea><label for="ai">Photos (up to 4)</label><input id="ai" type="file" accept="image/*" multiple><p style="margin:16px 0 0"><button class="btn gold" id="aa">Add product</button></p></div>';
  h+='<h3 style="margin:26px 0 8px;font-size:20px">Products and stock</h3><div class="card" style="overflow-x:auto"><table><tr><th>Photo</th><th>Product</th><th>Details</th><th>Price (ETB)</th><th>Stock</th><th></th></tr>'+P.map(function(p){return'<tr><td>'+(pics(p)[0]?'<img class="t" src="'+pics(p)[0]+'" alt="">':'<span style="font-size:28px">'+p.emoji+'</span>')+'<br><small>'+pics(p).length+'/4</small><br><button class="chip" data-ph="'+p.id+'">Add photos</button> <button class="chip" data-cp="'+p.id+'">Clear</button></td><td>'+esc(p.name)+'<br><small>'+esc(p.cat)+'</small></td><td><textarea data-de="'+p.id+'" rows="3" style="min-width:170px" placeholder="Describe the product">'+esc(p.descr||"")+'</textarea></td><td><input type="number" min="0" style="width:90px;padding:6px" data-pr="'+p.id+'" value="'+p.price+'"></td><td class="qty"><button class="chip" data-d="-1" data-i="'+p.id+'">−</button><input type="number" min="0" data-s="'+p.id+'" value="'+p.stock+'"><button class="chip" data-d="1" data-i="'+p.id+'">+</button></td><td><button class="chip" data-x="'+p.id+'">Delete</button></td></tr>'}).join("")+'</table><input type="file" id="pf" accept="image/*" multiple style="display:none"></div>';
- h+='<h3 style="margin:26px 0 8px;font-size:20px">Orders</h3><div class="card" style="overflow-x:auto">'+(ids.length?'<table><tr><th>Order ID</th><th>Customer</th><th>Item</th><th>Shipping</th><th>Status</th></tr>'+ids.map(function(id){var o=O[id];return'<tr><td>'+id+'</td><td>'+(o.name||"")+'<br><small>'+o.phone+'</small></td><td>'+o.item+'</td><td>'+(o.ship||"")+'</td><td><select data-o="'+id+'" style="padding:6px">'+STEPS.map(function(t,i){return'<option value="'+i+'"'+(i==o.done-1?" selected":"")+'>'+t[0]+'</option>'}).join("")+'</select></td></tr>'}).join("")+'</table>':'<p class="sub" style="margin:0">No orders yet.</p>')+'</div>';
+ h+='<h3 style="margin:26px 0 8px;font-size:20px">Orders</h3>'+ordersHTML(ids);
  $("#adm").innerHTML=h}
 var pick=0;
 function byId(i){return P.filter(function(p){return String(p.id)==String(i)})[0]}
 $("#adm").onclick=function(e){var t=e.target,d=t.dataset;
+ if(d.sq){var oq=O[d.sq],tot=Math.max(0,parseInt($("#qt"+d.sq).value)||0);if(!tot){alert("Enter the total in ETB.");return}adv(oq,2);po(d.sq,{total:tot,qnote:$("#qn"+d.sq).value,accepted:false,done:oq.done,dates:oq.dates});oq.total=tot;oq.accepted=false}
+ if(d.vw){var a1=d.vw.split("|");$("#lbi").src=O[a1[0]].pay[a1[1]].proof;$("#lb").classList.add("open")}
+ if(d.vp){var a2=d.vp.split("|"),o2=O[a2[0]];o2.pay[a2[1]].st="Paid";adv(o2,o2.pay[a2[1]].k.indexOf("Deposit")==0?3:7);po(a2[0],{pay:o2.pay,done:o2.done,dates:o2.dates})}
+ if(d.rp){var a3=d.rp.split("|"),o3=O[a3[0]];o3.pay.splice(a3[1],1);po(a3[0],{pay:o3.pay})}
  if(t.id=="aa"){var n=$("#an").value.trim();if(!n){alert("Enter a product name.");return}
   var add=function(imgs){P.push({id:Date.now(),name:n,cat:$("#ac").value.trim()||"Other",price:+$("#ap2").value||0,stock:Math.max(0,parseInt($("#as").value)||0),emoji:"📦",img:"",imgs:imgs,descr:$("#ad").value.trim()});sp(P[P.length-1])};
   shrinkAll($("#ai").files,add)}
@@ -259,7 +286,7 @@ $("#adm").onchange=function(e){var t=e.target,d=t.dataset;
  if(t.id=="pf"&&t.files[0]){shrinkAll(t.files,function(a){var p=byId(pick);p.imgs=pics(p).concat(a).slice(0,4);p.img="";sp(p)});t.value=""}};
 $("#m").onclick=function(e){if(e.target.id=="m")$("#m").classList.remove("open")};
 $("#heroTrack").innerHTML='<h3>Follow every order</h3><p class="meta">Each order gets its own ID. These are the steps you will see.</p><ul class="tl">'+STEPS.map(function(s){return'<li><span class="dot"></span><div class="row">'+s[0]+'</div><small>'+s[1]+'</small></li>'}).join("")+'</ul><a class="btn" href="#track">Track my order</a>';
-chips();fillSel();grid();route();if(REMOTE){$("#grid").innerHTML='<p class="sub">Loading products…</p>';load().catch(function(){$("#grid").innerHTML='<p class="err">Could not load products. Please refresh the page.</p>'})}var spl=$("#splash");spl.onclick=function(){spl.remove()};setTimeout(function(){spl.remove()},3000);
+chips();fillSel();grid();showMine();route();if(REMOTE){$("#grid").innerHTML='<p class="sub">Loading products…</p>';load().catch(function(){$("#grid").innerHTML='<p class="err">Could not load products. Please refresh the page.</p>'})}var spl=$("#splash");spl.onclick=function(){spl.remove()};setTimeout(function(){spl.remove()},3000);
 </script>
 </body>
 </html>
