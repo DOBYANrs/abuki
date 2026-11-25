@@ -147,7 +147,7 @@ ol.st{margin:8px 0 0;padding-left:20px}ol.st li{margin:4px 0}
 var $=function(s){return document.querySelector(s)};
 var L=function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 var S=function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert("Storage is full. Use smaller photos.")}};
-var CFG={url:"https://bvhxlvajgobndolykarc.supabase.co",key:"sb_publishable_OjaXkevSZQK7GWa1I4cbyA_PKOG-QrV"},REMOTE=!!(CFG.url&&CFG.key),tok="";
+var CFG={url:"https://bvhxlvajgobndolykarc.supabase.co",key:"sb_publishable_OjaXkevSZQK7GWa1I4cbyA_PKOG-QrV"},REMOTE=!!(CFG.url&&CFG.key),tok=(function(){try{return sessionStorage.getItem("abk_t")||""}catch(e){return ""}})();
 function api(path,o){o=o||{};var h={apikey:CFG.key,"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;if(o.prefer)h.Prefer=o.prefer;
  return fetch(CFG.url+path,{method:o.m||"GET",headers:h,body:o.b?JSON.stringify(o.b):undefined}).then(function(r){return r.text().then(function(t){var j=t?JSON.parse(t):null;if(!r.ok)throw new Error(j&&(j.message||j.msg||j.error_description)||"Request failed");return j})})}
 function load(){return api("/rest/v1/products?select=*&order=id").then(function(r){P=r;chips();fillSel();grid()})}
@@ -239,17 +239,18 @@ $("#pd").onclick=function(e){var t=e.target,d=t.dataset,box=this;
 $("#lb").onclick=function(){this.classList.remove("open")};
 document.addEventListener("keydown",function(e){if(e.key=="Escape"){$("#pd").classList.remove("open");$("#lb").classList.remove("open")}});
 /* owner area */
-var admin=false;
+var admin=!!tok;
 var PG=["home","how","shop","request","track","terms","contact","adm"];
 function route(){var h=location.hash.replace("#","")||"home";if(h=="admin")h="adm";if(PG.indexOf(h)<0)h="home";
  PG.forEach(function(p){$(p=="adm"?"#adm":"#pg-"+p).style.display=p==h?"block":"none"});
  [].forEach.call(document.querySelectorAll("nav a"),function(a){a.classList.toggle("on",a.getAttribute("href")=="#"+h)});
- if(h=="adm")admin?arender():alogin();window.scrollTo(0,0)}
+ if(h=="adm"){if(admin&&REMOTE)aload();else admin?arender():alogin()}if(h=="track"&&!curT&&mine().length){var x0=mine()[0];$("#oid").value=x0.id;$("#ph").value=x0.code;trackNow(x0.id,x0.code)}window.scrollTo(0,0)}
 window.addEventListener("hashchange",route);
+function aload(){return api("/rest/v1/orders?select=*&order=created_at.asc").then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){tok="";admin=false;try{sessionStorage.removeItem("abk_t")}catch(e){}alogin();$("#ae").textContent="Could not load orders: "+x.message})}
 function alogin(){$("#adm").innerHTML='<h2>Owner login</h2><div class="card" style="max-width:360px;margin-top:16px">'+(REMOTE?'<label for="aem">Email</label><input id="aem" type="email">':'')+'<label for="apw">Password</label><input id="apw" type="password" autocomplete="current-password"><label style="font-weight:400;display:flex;gap:8px;align-items:center"><input type="checkbox" id="sp" style="width:auto"> Show password</label><p style="margin:14px 0 0"><button class="btn" id="al">Log in</button></p><p class="err" id="ae"></p></div>';
  $("#sp").onchange=function(){$("#apw").type=this.checked?"text":"password"};
  $("#al").onclick=function(){if(!REMOTE){if($("#apw").value=="abuki2026"){admin=true;arender()}else $("#ae").textContent="Wrong password.";return}
-  api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;return api("/rest/v1/orders?select=*&order=created_at.asc")}).then(function(rows){O={};rows.forEach(function(o){O[o.id]=o});arender()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
+  api("/auth/v1/token?grant_type=password",{m:"POST",b:{email:$("#aem").value.trim(),password:$("#apw").value}}).then(function(r){tok=r.access_token;admin=true;try{sessionStorage.setItem("abk_t",tok)}catch(e){}return aload()}).catch(function(x){$("#ae").textContent="Login failed: "+x.message})}}
 function toast(m,e){var t=$("#toast");t.textContent=m;t.className=e?"er":"";t.style.display="block";clearTimeout(window.tt);window.tt=setTimeout(function(){t.style.display="none"},e?9000:2000)}
 function sp(p,k){if(!REMOTE){S("abk_p",P);refresh();return}
  (k?api("/rest/v1/products?id=eq."+p.id,{m:"PATCH",b:k}):api("/rest/v1/products",{m:"POST",b:[p],prefer:"resolution=merge-duplicates,return=minimal"})).then(load).then(refresh).then(function(){toast("Saved")}).catch(function(x){toast("Could not save: "+x.message,1)})}
